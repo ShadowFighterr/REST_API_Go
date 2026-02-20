@@ -18,7 +18,7 @@ func ResponseTimeMiddleware(next http.Handler) http.Handler {
 		w.Header().Set("X-Response-Time", duration.String())
 		next.ServeHTTP(w, r)
 
-		fmt.Printf("Methiod: %s, Path: %s, Duration: %v, Status: %d\n", r.Method, r.URL.Path, duration, wrappedWriter.statusCode)
+		fmt.Printf("Method: %s, Path: %s, Duration: %v, Status: %d\n", r.Method, r.URL.Path, duration, wrappedWriter.statusCode)
 		fmt.Println("Response Time Middleware completed")
 	})
 }

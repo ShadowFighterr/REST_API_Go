@@ -3,104 +3,31 @@ package main
 import (
 	"crypto/tls"
 	"fmt"
-	"log"
 	"net/http"
+	"os"
 	mw "restapi/internal/api/middlewares"
+	"restapi/internal/api/router"
+	"restapi/internal/repository/sqlconnect"
+	"restapi/pkg/utils"
 	"time"
+
+	"github.com/joho/godotenv"
 )
 
-type user struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
-	Age  int    `json:"age"`
-}
-
-func rootHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("Root endpoint accessed")
-	fmt.Fprint(w, "Hello, World!")
-}
-
-func studentsHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("Students endpoint accessed")
-	switch r.Method {
-	case http.MethodGet:
-		w.Write([]byte("Hello GET method in students routes"))
-	case http.MethodPost:
-		w.Write([]byte("Hello POST method in students routes"))
-	case http.MethodPut:
-		w.Write([]byte("Hello PUT method in students routes"))
-	case http.MethodPatch:
-		w.Write([]byte("Hello PATCH method in students routes"))
-	case http.MethodDelete:
-		w.Write([]byte("Hello DELETE method in students routes"))
-	default:
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-	}
-	fmt.Fprint(w, "Students Endpoint")
-}
-
-func teachersHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("Teachers endpoint accessed")
-	switch r.Method {
-	case http.MethodGet:
-		w.Write([]byte("Hello GET method in teachers routes"))
-	case http.MethodPost:
-		w.Write([]byte("Hello POST method in teachers routes"))
-	case http.MethodPut:
-		w.Write([]byte("Hello PUT method in teachers routes"))
-	case http.MethodPatch:
-		w.Write([]byte("Hello PATCH method in teachers routes"))
-	case http.MethodDelete:
-		w.Write([]byte("Hello DELETE method in teachers routes"))
-	default:
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-	}
-	fmt.Fprint(w, "Teachers Endpoint")
-}
-
-func execsHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("Executives endpoint accessed")
-	switch r.Method {
-	case http.MethodGet:
-		w.Write([]byte("Hello GET method in execs routes"))
-	case http.MethodPost:
-		fmt.Println("Query Parameters:", r.URL.Query())
-
-		w.Write([]byte("Hello POST method in execs routes"))
-	case http.MethodPut:
-		w.Write([]byte("Hello PUT method in execs routes"))
-	case http.MethodPatch:
-		w.Write([]byte("Hello PATCH method in execs routes"))
-	case http.MethodDelete:
-		w.Write([]byte("Hello DELETE method in execs routes"))
-	default:
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-	}
-	fmt.Fprint(w, "Executives Endpoint")
-}
-
-func applyMiddlewares(h http.Handler, middlewares ...func(http.Handler) http.Handler) http.Handler {
-	for _, middleware := range middlewares {
-		h = middleware(h)
-	}
-	return h
-}
-
 func main() {
-	port := ":3000"
-
+	err := godotenv.Load()
+	if err != nil {
+		fmt.Println("Error loading .env file")
+		return
+	}
+	_, err = sqlconnect.ConnectDB("school_management")
+	if err != nil {
+		panic(err)
+	}
+	// defer db.Close()
+	port := os.Getenv("API_PORT")
 	cert := "cert.pem"
 	key := "key.pem"
-
-	mux := http.NewServeMux()
-
-	mux.HandleFunc("/", rootHandler)
-
-	mux.HandleFunc("/students/", studentsHandler)
-
-	mux.HandleFunc("/teachers/", teachersHandler)
-
-	mux.HandleFunc("/execs/", execsHandler)
 
 	tlsConfig := &tls.Config{
 		MinVersion: tls.VersionTLS12,
@@ -111,15 +38,15 @@ func main() {
 		CheckQuery:                   true,
 		CheckBody:                    true,
 		CheckBodyOnlyForContentTypes: "application/x-www-form-urlencoded",
-		Whitelist:                    []string{"SortBy", "Asc"},
+		Whitelist:                    []string{"SortBy", "Asc", "name", "age", "class"},
 	}
-	secureMux := applyMiddlewares(mux,
-		mw.SecurityHeaders,
+	secureMux := utils.ApplyMiddlewares(router.Router(),
 		mw.Cors,
 		rl.Limit,
-		mw.HPPMiddleware(hppOptions),
 		mw.ResponseTimeMiddleware,
 		mw.CompressionMiddleware,
+		mw.HPPMiddleware(hppOptions),
+		mw.SecurityHeaders,
 	)
 
 	server := &http.Server{

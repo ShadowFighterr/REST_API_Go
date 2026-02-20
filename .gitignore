@@ -1,7 +1,9 @@
-# Dependencies
-node_modules/
-package-lock.json
-yarn.lock
+#Binaries
+*.exe
+*.dll
+*.so
+*.dylib
+.gitignore
 
 # Environment variables
 .env
@@ -34,3 +36,7 @@ coverage/
 # Temporary files
 *.tmp
 *.bak
+
+#Go workspace file
+go.work
+go.work.sum
