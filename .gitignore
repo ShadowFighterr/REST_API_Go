@@ -1,0 +1,53 @@
+# --- OS / editor noise ---
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# --- Environment / secrets ---
+.env
+.env.*
+!.env.example
+*.local
+secrets/
+*.pem
+*.key
+*.crt
+
+# --- Logs ---
+*.log
+logs/
+tmp/
+
+# --- Go build artifacts ---
+bin/
+dist/
+build/
+out/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+
+# --- Go tooling / coverage ---
+coverage.out
+*.coverprofile
+.coverage
+coverage/
+profile.out
+*.prof
+
+
+# --- Test cache / reports ---
+*.test.result
+junit.xml
+
+# --- Local tooling state ---
+.air.toml
+.air/
+tmp/

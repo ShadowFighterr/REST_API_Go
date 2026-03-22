@@ -14,9 +14,9 @@ func ResponseTimeMiddleware(next http.Handler) http.Handler {
 		//Create a custom response writer to capture status code if needed
 		wrappedWriter := &responseWriter{ResponseWriter: w, statusCode: http.StatusOK}
 
+		next.ServeHTTP(wrappedWriter, r)
 		duration := time.Since(start)
-		w.Header().Set("X-Response-Time", duration.String())
-		next.ServeHTTP(w, r)
+		wrappedWriter.Header().Set("X-Response-Time", duration.String())
 
 		fmt.Printf("Method: %s, Path: %s, Duration: %v, Status: %d\n", r.Method, r.URL.Path, duration, wrappedWriter.statusCode)
 		fmt.Println("Response Time Middleware completed")
